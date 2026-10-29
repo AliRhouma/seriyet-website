@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriyet — الموقع قيد التطوير</title>
+<meta name="theme-color" content="#0566EA">
+<link rel="icon" href="seriyet-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #08214A; --blue: #0566EA; --blue-soft: #E3EEFD; --muted: #5B6987; --line: #E6EBF3; --bg: #F6F8FC; --err: #D93F2B; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { min-height: 100%; }
+  body { font-family: Rubik, system-ui, sans-serif; color: var(--ink); background: var(--bg);
+         min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+  .lat { direction: ltr; unicode-bidi: isolate; }
+  .g { color: var(--blue); }
+  .wrap { width: 100%; max-width: 420px; text-align: center; }
+
+  .brand { margin: 0 auto 22px; }
+  .brand img { width: 96px; height: 96px; display: block; margin: 0 auto; }
+  .brand span { display: block; font-size: 17px; font-weight: 800; color: var(--blue); letter-spacing: 2px; line-height: 1; margin-top: -4px; padding-left: 2px; direction: ltr; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  h1 { font-size: 26px; font-weight: 800; }
+
+  /* 2 — text */
+  .lead { font-size: 18px; line-height: 1.7; margin: 14px 0 26px; }
+
+  /* 3 — steps */
+  .step { display: none; } .step.on { display: block; }
+  .phone { display: flex; direction: ltr; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; transition: border-color .15s, box-shadow .15s; }
+  .phone:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+  .bad { border-color: var(--err) !important; box-shadow: 0 0 0 4px #FDE8E4 !important; }
+  .cc { display: flex; align-items: center; padding: 0 14px; background: var(--bg); font-weight: 600; font-size: 18px; border-right: 2px solid var(--line); }
+  .phone input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 15px 14px; font: 600 20px Rubik, sans-serif; letter-spacing: 1.5px; color: var(--ink); background: transparent; }
+  .phone input::placeholder { color: #B5BFD3; font-weight: 500; }
+  .msg { min-height: 22px; font-size: 14px; color: var(--err); margin-top: 8px; }
+
+  .btn { width: 100%; border: 0; border-radius: 16px; padding: 16px; cursor: pointer; font: 700 19px Rubik, sans-serif; color: #fff; background: var(--blue);
+         display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; box-shadow: 0 10px 22px rgba(5,102,234,.28); }
+  .btn:active { transform: scale(.98); }
+  .btn .spin { display: none; width: 22px; height: 22px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+  .btn.loading .spin { display: block; } .btn.loading .txt { display: none; }
+  .btn.loading { pointer-events: none; }
+  .btn.ghost .spin { border-color: rgba(5,102,234,.25); border-top-color: var(--blue); }
+  .btn.ghost { background: #fff; color: var(--blue); border: 2px solid var(--blue); box-shadow: none; margin-top: 12px; }
+  .btn[hidden] { display: none; }
+  .link { background: none; border: 0; cursor: pointer; font: 600 15px Rubik, sans-serif; color: var(--blue); text-decoration: underline; text-underline-offset: 4px; padding: 6px; margin-top: 8px; }
+
+  .sent { font-size: 16px; color: var(--muted); line-height: 1.6; }
+  .sent b { color: var(--ink); font-weight: 700; }
+  .code { display: flex; direction: ltr; justify-content: center; gap: 12px; margin: 16px 0 10px; }
+  .code input { width: 62px; height: 70px; border: 2px solid var(--line); border-radius: 14px; text-align: center; font: 700 28px Rubik, sans-serif; color: var(--ink); background: #fff; outline: 0; }
+  .code input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+  .timer { font-size: 15px; color: var(--muted); margin: 4px 0 2px; min-height: 22px; }
+  .timer b { color: var(--ink); }
+  .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <div class="brand"><img src="seriyet-logo.svg" alt="Seriyet"><span>SVT</span></div>
+
+  <!-- 1 -->
+  <h1>الموقع قيد التطوير</h1>
+
+  <!-- 2 -->
+  <p class="lead">بش تاخو الـ <span class="lat g">PDF</span> تاع الـ <span class="lat g">SVT</span> يكفي تكتبلنا رقمك تاع الواتساب منا .</p>
+
+  <!-- 3a — number -->
+  <form class="step on" id="s1" novalidate>
+    <div class="phone" id="box">
+      <span class="cc">+216</span>
+      <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="XX XXX XXX" maxlength="10" aria-label="رقم الواتساب">
+    </div>
+    <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="msg" id="msg1" role="alert"></div>
+    <button class="btn" type="submit" id="send"><span class="spin"></span><span class="txt">ابعث</span></button>
+  </form>
+
+  <!-- 3b — code -->
+  <div class="step" id="s2">
+    <div class="sent">دخّل الكود اللي وصلك على الواتساب<br><b class="lat" id="num"></b></div>
+    <div class="code" id="code">
+      <input inputmode="numeric" maxlength="1" aria-label="1"><input inputmode="numeric" maxlength="1" aria-label="2"><input inputmode="numeric" maxlength="1" aria-label="3"><input inputmode="numeric" maxlength="1" aria-label="4">
+    </div>
+    <div class="timer" id="timer"></div>
+    <button class="btn ghost" type="button" id="nocode" hidden><span class="spin"></span><span class="txt">الكود ما وصلش</span></button>
+    <button class="link" type="button" id="change">بدّل الرقم</button>
+  </div>
+
+  <!-- 3c — download -->
+  <div class="step" id="s3">
+    <a class="btn" id="dl" href="Seriyet-5-schemas-Homme.pdf" target="_blank" rel="noopener" download>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
+      حمّل الـ <span class="lat">PDF</span>
+    </a>
+  </div>
+
+</main>
+
+<script>
+  /* ---- CONFIG -------------------------------------------------------------
+     ENDPOINT: receives each number (POST form-encoded: phone, source, ts) — e.g. the
+     Google Apps Script web app in waitlist-apps-script.gs. Empty = console only.
+     VERIFY:   optional function(phone, code) -> Promise<boolean> for a real code check.
+               Left null, any 4-digit code is accepted (no code is actually sent). */
+  var ENDPOINT = "";
+  var VERIFY = null;
+  var WAIT = 15;                                                     // seconds before « الكود ما وصلش »
+  /* PDF on Bunny (zone pas-a-pas). Put the pull-zone hostname here once it exists,
+     e.g. "seriyet.b-cdn.net". Empty = the local copy next to this page is used. */
+  var BUNNY_HOST = "";
+  var PDF_PATH = "/pdf%20social%20media/Seriyet%20SVT/Seriyet-5-schemas-Homme.pdf";
+  /* ------------------------------------------------------------------------ */
+
+  function $(id) { return document.getElementById(id); }
+  if (BUNNY_HOST) $("dl").href = "https://" + BUNNY_HOST + PDF_PATH;
+  var inp = $("phone"), box = $("box"), msg1 = $("msg1"), cells = [].slice.call(document.querySelectorAll("#code input"));
+  var source = new URLSearchParams(location.search).get("src") || document.referrer || "direct";
+  var phone = "", tick = null;
+
+  function show(id) { ["s1", "s2", "s3"].forEach(function (s) { $(s).classList.toggle("on", s === id); }); }
+  function digits(v) {
+    v = v.replace(/\D/g, "");
+    if (v.indexOf("00216") === 0) v = v.slice(5); else if (v.indexOf("216") === 0 && v.length === 11) v = v.slice(3);
+    return v;
+  }
+  function pretty(d) { return "+216 " + d.slice(0, 2) + " " + d.slice(2, 5) + " " + d.slice(5); }
+
+  inp.addEventListener("input", function () {
+    var d = digits(inp.value).slice(0, 8);
+    inp.value = d.replace(/^(\d{2})(\d{0,3})(\d{0,3}).*/, function (_, a, b, c) { return [a, b, c].filter(Boolean).join(" "); });
+    box.classList.remove("bad"); msg1.textContent = "";
+  });
+
+  /* step 1 → 2 */
+  $("s1").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var d = digits(inp.value);
+    if (!/^[2459]\d{7}$/.test(d)) {
+      box.classList.add("bad");
+      msg1.textContent = d.length !== 8 ? "الرقم لازم يكون فيه 8 أرقام" : "ثبّت في الرقم : لازم يبدا بـ 2 ، 4 ، 5 ولا 9";
+      inp.focus(); return;
+    }
+    phone = d;
+    if (!$("s1").website.value) {                                    // hidden field empty = not a bot
+      var body = new URLSearchParams({ phone: "+216" + d, source: source, ts: new Date().toISOString() });
+      if (ENDPOINT) fetch(ENDPOINT, { method: "POST", mode: "no-cors", body: body }).catch(function () {});
+      else console.log("[waitlist] ENDPOINT not set —", body.toString());
+    }
+    $("num").textContent = pretty(d);
+    cells.forEach(function (c) { c.value = ""; c.classList.remove("bad"); });
+    $("send").classList.add("loading");                              // 0.5 s loading, then the code screen
+    setTimeout(function () { $("send").classList.remove("loading"); show("s2"); cells[0].focus(); startTimer(); }, 500);
+  });
+
+  /* 15 s countdown, then « الكود ما وصلش » */
+  function startTimer() {
+    var left = WAIT; $("nocode").hidden = true; clearInterval(tick);
+    function draw() { $("timer").innerHTML = left > 0 ? "الكود يوصلك في <b class='lat'>0:" + (left < 10 ? "0" : "") + left + "</b>" : ""; }
+    draw();
+    tick = setInterval(function () { left--; draw(); if (left <= 0) { clearInterval(tick); $("nocode").hidden = false; } }, 1000);
+  }
+
+  /* 4-digit code boxes: auto-advance, backspace, paste */
+  cells.forEach(function (c, i) {
+    c.addEventListener("input", function () {
+      c.value = c.value.replace(/\D/g, "").slice(-1); c.classList.remove("bad");
+      if (c.value && i < 3) cells[i + 1].focus();
+      check();
+    });
+    c.addEventListener("keydown", function (e) { if (e.key === "Backspace" && !c.value && i > 0) cells[i - 1].focus(); });
+    c.addEventListener("paste", function (e) {
+      var t = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, 4);
+      if (!t) return; e.preventDefault();
+      t.split("").forEach(function (ch, k) { cells[k].value = ch; }); cells[Math.min(t.length, 3)].focus(); check();
+    });
+  });
+  function check() {
+    var code = cells.map(function (c) { return c.value; }).join("");
+    if (code.length < 4) return;
+    (VERIFY ? VERIFY("+216" + phone, code) : Promise.resolve(true)).then(function (ok) {
+      if (ok) done(); else { cells.forEach(function (c) { c.value = ""; c.classList.add("bad"); }); cells[0].focus(); }
+    });
+  }
+
+  function done() { clearInterval(tick); show("s3"); }
+  $("nocode").addEventListener("click", function () {         // 1 s loading, then the PDF button
+    var b = $("nocode"); b.classList.add("loading");
+    setTimeout(function () { b.classList.remove("loading"); done(); }, 1000);
+  });
+  $("change").addEventListener("click", function () { clearInterval(tick); show("s1"); inp.focus(); inp.select(); });
+</script>
+</body>
+</html>
