@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seriyet — لعبة الـ Schémas</title>
+<meta name="description" content="احفظ الـ 5 schémas تاع درس الـ Homme باللعب : légender من الذاكرة، تصحيح فوري، و مراجعة كل نهار.">
+<meta name="theme-color" content="#0566EA">
+<link rel="icon" href="../seriyet-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#08214A; --blue:#0566EA; --blue-soft:#E3EEFD; --muted:#5B6987; --line:#E6EBF3; --bg:#F6F8FC; --card:#fff;
+          --ok:#12A37F; --ok-soft:#DDF5EE; --err:#E2493A; --err-soft:#FDE8E4; --gold:#F5A524; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; }
+  body { font-family:Rubik, system-ui, sans-serif; color:var(--ink); background:var(--bg); min-height:100vh; min-height:100dvh; }
+  button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; }
+  .lat { direction:ltr; unicode-bidi:isolate; }
+  .g { color:var(--blue); }
+  [hidden] { display:none !important; }
+  .screen { display:none; } .screen.on { display:block; }
+  .wrap { max-width:1100px; margin:0 auto; padding:16px 16px 40px; }
+
+  /* ---------- home ---------- */
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+  .brand img { width:44px; height:44px; }
+  .brand b { font-size:20px; font-weight:800; }
+  .brand small { display:block; font-size:12px; color:var(--muted); font-weight:500; }
+  .icons { display:flex; gap:6px; }
+  .ibtn { width:42px; height:42px; border-radius:12px; background:var(--card); border:2px solid var(--line); display:grid; place-items:center; font-size:19px; }
+  .ibtn[aria-pressed="true"] { border-color:var(--blue); background:var(--blue-soft); }
+  .hero { background:linear-gradient(135deg,#0566EA,#0A3D91); color:#fff; border-radius:24px; padding:22px 20px; position:relative; overflow:hidden; }
+  .hero h1 { font-size:clamp(24px,5.4vw,34px); font-weight:800; line-height:1.25; }
+  .hero p { margin-top:8px; font-size:16px; line-height:1.6; opacity:.92; max-width:560px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip { background:rgba(255,255,255,.16); border-radius:999px; padding:7px 13px; font-weight:700; font-size:15px; }
+  .review { margin-top:16px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+  .btn { border-radius:16px; padding:14px 20px; font-weight:700; font-size:17px; background:var(--blue); color:#fff; box-shadow:0 10px 22px rgba(5,102,234,.25);
+         display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; min-height:50px; }
+  .btn:active { transform:scale(.97); }
+  .btn.white { background:#fff; color:var(--blue); box-shadow:none; }
+  .btn.ghost { background:var(--card); color:var(--blue); border:2px solid var(--blue); box-shadow:none; }
+  .btn.ok { background:var(--ok); box-shadow:0 10px 22px rgba(18,163,127,.25); }
+  .btn[disabled] { opacity:.5; pointer-events:none; }
+  .review small { font-size:14px; opacity:.9; }
+  h2 { font-size:21px; font-weight:800; margin:26px 0 12px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .card { background:var(--card); border:2px solid var(--line); border-radius:20px; padding:12px; text-align:start; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, transform .15s; }
+  .card:hover { border-color:var(--blue); transform:translateY(-2px); }
+  .thumb { height:150px; border-radius:14px; background:#fff; border:1px solid var(--line); overflow:hidden; display:grid; place-items:center; }
+  .thumb svg { width:100%; height:100%; direction:ltr; }
+  .card h3 { font-size:18px; font-weight:800; }
+  .card .meta { display:flex; justify-content:space-between; align-items:center; font-size:14px; color:var(--muted); }
+  .bar { height:8px; background:var(--line); border-radius:9px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--ok),#47C99F); border-radius:9px; transition:width .4s; }
+  .stars { color:var(--gold); letter-spacing:1px; font-size:15px; }
+  .stars .off { color:#D3DAE6; }
+  .how { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .how div { background:var(--card); border:2px solid var(--line); border-radius:18px; padding:14px; font-size:15px; line-height:1.6; }
+  .how b { display:block; font-size:16px; margin-bottom:4px; }
+  .credits { margin-top:26px; font-size:12px; color:var(--muted); line-height:1.6; direction:ltr; text-align:left; }
+
+  /* ---------- levels ---------- */
+  .head { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .head h2 { margin:0; }
+  .levels { display:grid; gap:10px; max-width:640px; }
+  .lvl { display:flex; align-items:center; gap:14px; background:var(--card); border:2px solid var(--line); border-radius:18px; padding:14px; text-align:start; width:100%; }
+  .lvl:not([disabled]):hover { border-color:var(--blue); }
+  .lvl[disabled] { opacity:.5; cursor:not-allowed; }
+  .lvl .ico { width:48px; height:48px; flex:none; border-radius:14px; display:grid; place-items:center; font-size:24px; background:var(--blue-soft); }
+  .lvl .t { flex:1; }
+  .lvl .t b { display:block; font-size:17px; }
+  .lvl .t span { font-size:14px; color:var(--muted); line-height:1.5; }
+  .lvl.boss .ico { background:var(--err-soft); }
+
+  /* ---------- game ---------- */
+  .hud { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .hud .prog { flex:1; }
+  .hud .bar { height:12px; }
+  .hearts { font-size:20px; letter-spacing:1px; white-space:nowrap; }
+  .hearts .lost { filter:grayscale(1); opacity:.3; }
+  .timer { font-weight:800; font-size:17px; min-width:62px; text-align:center; background:var(--card); border:2px solid var(--line); border-radius:12px; padding:6px 8px; direction:ltr; }
+  .timer.warn { color:var(--err); border-color:var(--err); animation:beat 1s infinite; }
+  @keyframes beat { 50% { transform:scale(1.08); } }
+  .play { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr); gap:16px; align-items:start; }
+  .stage { position:relative; background:#fff; border:2px solid var(--line); border-radius:20px; padding:8px; }
+  .stage .sch-title { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:4px 6px 8px; font-weight:800; }
+  .scroller { direction:ltr; overflow:auto; border-radius:12px; -webkit-overflow-scrolling:touch; }
+  .scroller svg { display:block; width:100%; height:auto; max-height:68vh; }
+  .stage.zoom .scroller { max-height:70vh; }
+  .stage.zoom .scroller svg { width:230%; max-height:none; }
+  .pin circle { fill:#fff; stroke:var(--ink); }
+  .pin text { fill:var(--ink); font-family:Rubik, sans-serif; font-weight:800; text-anchor:middle; dominant-baseline:central; }
+  .pin.done circle { fill:var(--ok); stroke:#fff; }
+  .pin.done text { fill:#fff; }
+  .pin.active circle { fill:var(--blue); stroke:#fff; }
+  .pin.active text { fill:#fff; }
+  .pin.active { animation:pulse 1.1s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
+  .pin.flash circle { fill:var(--gold); }
+  @keyframes pulse { 50% { transform:scale(1.35); } }
+  .lead-line { stroke:var(--ink); }
+  .panel { background:var(--card); border:2px solid var(--line); border-radius:20px; padding:16px; position:sticky; top:12px; }
+  .ask { font-size:19px; font-weight:800; line-height:1.5; }
+  .ask .num { display:inline-grid; place-items:center; min-width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; padding:0 6px; margin:0 4px; }
+  .sub { color:var(--muted); font-size:14px; margin-top:4px; }
+  .answers { margin-top:14px; display:grid; gap:9px; }
+  .opt { border:2px solid var(--line); border-radius:14px; padding:13px 14px; font-weight:700; font-size:16px; text-align:left; direction:ltr; background:#fff; min-height:50px; transition:border-color .12s, background .12s; }
+  .opt:hover { border-color:var(--blue); }
+  .opt.right { border-color:var(--ok); background:var(--ok-soft); }
+  .opt.wrong { border-color:var(--err); background:var(--err-soft); animation:shake .35s; }
+  .opt.gone { opacity:.25; pointer-events:none; }
+  .bank { display:flex; flex-wrap:wrap; gap:8px; direction:ltr; }
+  .bank .opt { padding:9px 12px; min-height:42px; font-size:15px; border-radius:999px; }
+  .bank .opt.used { opacity:.3; pointer-events:none; text-decoration:line-through; }
+  @keyframes shake { 25% { transform:translateX(-6px); } 75% { transform:translateX(6px); } }
+  .type { display:flex; gap:8px; direction:ltr; }
+  .type input { flex:1; min-width:0; border:2px solid var(--line); border-radius:14px; padding:13px 14px; font:600 18px Rubik, sans-serif; color:var(--ink); outline:0; background:#fff; }
+  .type input:focus { border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-soft); }
+  .type .btn { padding:12px 16px; }
+  .mask { direction:ltr; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:19px; letter-spacing:3px; color:var(--muted); background:var(--bg); border-radius:12px; padding:9px 12px; overflow-wrap:anywhere; }
+  .mask b { color:var(--blue); }
+  .tools { display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:8px; flex-wrap:wrap; }
+  .hint { color:var(--blue); font-weight:700; font-size:15px; padding:8px 10px; border-radius:10px; background:var(--blue-soft); }
+  .hint[disabled] { opacity:.4; pointer-events:none; }
+  .combo { font-weight:800; color:var(--gold); font-size:15px; }
+  .fb { margin-top:14px; border-radius:16px; padding:13px 14px; font-size:15px; line-height:1.6; }
+  .fb.ok { background:var(--ok-soft); border:2px solid #A9E6D4; }
+  .fb.bad { background:var(--err-soft); border:2px solid #F6BBB2; }
+  .fb .name { direction:ltr; text-align:left; font-weight:800; font-size:17px; }
+  .fb .note { direction:ltr; text-align:left; color:#33415F; margin-top:4px; }
+  .fb .yours { direction:ltr; text-align:left; text-decoration:line-through; color:var(--err); }
+  .fb .btn { width:100%; margin-top:10px; }
+  .legend { margin-top:16px; border-top:2px dashed var(--line); padding-top:12px; display:grid; gap:5px; direction:ltr; text-align:left; font-size:14.5px; max-height:36vh; overflow:auto; }
+  .legend li { list-style:none; display:flex; gap:8px; align-items:center; padding:3px 4px; border-radius:8px; }
+  .legend li .n { flex:none; width:24px; height:24px; border-radius:50%; background:var(--line); display:grid; place-items:center; font-size:12px; font-weight:800; }
+  .legend li.done .n { background:var(--ok); color:#fff; }
+  .legend li.active { background:var(--blue-soft); }
+  .legend li.active .n { background:var(--blue); color:#fff; }
+  .legend li .l { color:#A4AEC2; }
+  .legend li.done .l, .legend.study li .l { color:var(--ink); font-weight:600; }
+  .legend.study li { cursor:pointer; }
+  .legend.study li:hover { background:var(--blue-soft); }
+
+  /* ---------- end ---------- */
+  .end { max-width:520px; margin:24px auto; background:var(--card); border:2px solid var(--line); border-radius:24px; padding:26px 20px; text-align:center; }
+  .end .big { font-size:54px; }
+  .end h2 { margin:6px 0 4px; font-size:26px; }
+  .end .stars { font-size:40px; margin:8px 0; letter-spacing:6px; }
+  .end .nums { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:16px 0; }
+  .end .nums div { background:var(--bg); border-radius:14px; padding:10px 4px; font-size:13px; color:var(--muted); }
+  .end .nums b { display:block; font-size:21px; color:var(--ink); }
+  .end .redo { text-align:left; direction:ltr; background:var(--err-soft); border-radius:14px; padding:10px 14px; font-size:14.5px; line-height:1.7; margin-bottom:14px; }
+  .end .act { display:grid; gap:10px; }
+  .msg { font-size:16px; line-height:1.7; color:#33415F; }
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:9; }
+
+  @media (max-width:860px) {
+    .play { grid-template-columns:1fr; gap:10px; }
+    .panel { position:static; padding:14px; }
+    .scroller svg { max-height:44vh; }
+    .legend { max-height:none; }
+  }
+  @media (max-width:420px) {
+    .wrap { padding:12px 12px 32px; }
+    .hero { padding:18px 16px; border-radius:20px; }
+    .ask { font-size:17px; }
+    .hearts { font-size:17px; }
+    .timer { min-width:54px; font-size:15px; }
+  }
+  @media (prefers-reduced-motion:reduce) { .pin.active, .timer.warn { animation:none; } }
+</style>
+</head>
+<body>
+<canvas id="confetti" hidden></canvas>
+
+<!-- ============ HOME ============ -->
+<section class="screen on" id="home"><div class="wrap">
+  <div class="top">
+    <a class="brand" href="../"><img src="../seriyet-logo.svg" alt=""><div><b class="lat">Seriyet</b><small>لعبة الـ <span class="lat">schémas</span></small></div></a>
+    <div class="icons">
+      <button class="ibtn" id="soundBtn" aria-label="الصوت" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="zenBtn" aria-label="Mode zen : بلاش وقت و بلاش قلوب" aria-pressed="false">🧘</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1>احفظ الـ <span class="lat">5 schémas</span><br>تاع درس الـ <span class="lat">Homme</span> باللعب</h1>
+    <p>كل رقم في الـ <span class="lat">schéma</span>، لازم تلقى إسمو. كل ما تتقدّم، المساعدة تنقص حتى توصل تكتب كل شي من ذاكرتك، كيما في الباك.</p>
+    <div class="stats">
+      <span class="chip" id="stStreak">🔥 0 يوم</span>
+      <span class="chip" id="stStars">⭐ 0</span>
+      <span class="chip" id="stMastery">🧠 0%</span>
+    </div>
+    <div class="review">
+      <button class="btn white" id="reviewBtn">🔁 مراجعة اليوم</button>
+      <small id="reviewInfo"></small>
+    </div>
+  </div>
+
+  <h2>الـ <span class="lat">schémas</span></h2>
+  <div class="cards" id="cards"></div>
+
+  <h2>علاش هالطريقة تخدم؟</h2>
+  <div class="how">
+    <div><b>🧠 تفكّر قبل ما تشوف</b>كي تحاول تتذكّر الإسم وحدك، الذاكرة تتقوّى أكثر برشا من كي تعاود تقرا الـ <span class="lat">schéma</span>.</div>
+    <div><b>✅ التصحيح فوري</b>كي تغلط، تشوف الجواب الصحيح توّا. و الـ <span class="lat">légende</span> الي غلطت فيها ترجعلك بعد شوية في نفس الجولة.</div>
+    <div><b>🪜 المساعدة تنقص</b>تبدا باختيار من 3، بعد بنك الكلمات، بعد أوّل حرف، و في الآخر تكتب من ذاكرتك.</div>
+    <div><b>📅 مراجعة بالمسافات</b>الي تعرفو يرجعلك بعد يوم، 3، 7، 15 يوم. الي تغلط فيه يرجع غدوة. 10 دقايق في النهار تكفي.</div>
+  </div>
+
+  <p class="credits">Images: appareil génital: R. Dewaele, J. Abdulcadir, C. Brockmann, O. Fillod, S. Valera-Kummer (Unige/HUG/DIP), CC BY-SA 4.0, labels removed · spermatogenèse: Monica Rivero Gutierrez, CC BY-SA 4.0, cropped · spermatozoïde: Mariana Ruiz Villarreal (LadyofHats), trad. Moez, public domain, labels removed · all via Wikimedia Commons. Coupe de tubes séminifères: classic textbook drawing. Régulation: Seriyet redraw.</p>
+</div></section>
+
+<!-- ============ LEVELS ============ -->
+<section class="screen" id="levels"><div class="wrap">
+  <div class="head"><button class="ibtn" data-go="home" aria-label="رجوع">→</button><h2 id="lvTitle" class="lat"></h2></div>
+  <div class="levels" id="lvList"></div>
+</div></section>
+
+<!-- ============ GAME ============ -->
+<section class="screen" id="game"><div class="wrap">
+  <div class="hud">
+    <button class="ibtn" id="quitBtn" aria-label="خروج">✕</button>
+    <div class="prog"><div class="bar"><i id="progBar" style="width:0"></i></div></div>
+    <div class="hearts" id="hearts" aria-label="القلوب"></div>
+    <div class="timer" id="timer">0:00</div>
+  </div>
+  <div class="play">
+    <div class="stage" id="stage">
+      <div class="sch-title"><span class="lat" id="schName"></span><button class="ibtn" id="zoomBtn" aria-label="Zoom" aria-pressed="false">🔍</button></div>
+      <div class="scroller" id="scroller"></div>
+    </div>
+    <div class="panel">
+      <div id="askBox"></div>
+      <div class="answers" id="answers"></div>
+      <div class="tools" id="tools">
+        <button class="hint" id="hintBtn">💡 مساعدة</button>
+        <span class="combo" id="combo"></span>
+      </div>
+      <div id="fb"></div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ END ============ -->
+<section class="screen" id="end"><div class="wrap"><div class="end" id="endBox"></div></div></section>
+
+<script>
+(function () {
+"use strict";
+var INK = "#08214A";
+
+/* =====================================================================
+   DATA — 5 schemas. Coordinates are in each schema's own viewBox.
+   ===================================================================== */
+function regDrawing() {
+  var K = "#222", AR = "font-family:Arial,Helvetica,sans-serif", TR = "font-family:'Times New Roman',Times,serif";
+  var s = '<defs><marker id="rd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="' + K + '"/></marker></defs>';
+  s += '<rect x="100" y="112" width="562" height="716" fill="#fff"/>';
+  function box(x, y, w, h) { return '<rect x="' + (x + 7) + '" y="' + (y + 7) + '" width="' + w + '" height="' + h + '" fill="' + K + '"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#fff" stroke="' + K + '" stroke-width="2"/>'; }
+  function t(x, y, txt, size, fam, anchor) { return '<text x="' + x + '" y="' + y + '" font-size="' + size + '" style="' + fam + '" text-anchor="' + (anchor || "middle") + '" fill="' + K + '">' + txt + '</text>'; }
+  function ln(d, arrow, dash) { return '<path d="' + d + '" fill="none" stroke="' + K + '" stroke-width="2"' + (dash ? ' stroke-dasharray="5 4"' : '') + (arrow ? ' marker-end="url(#rd)"' : '') + '/>'; }
+  function sg(x, y, plus) { return '<circle cx="' + x + '" cy="' + y + '" r="10" fill="#fff" stroke="' + K + '" stroke-width="2"/><path d="M' + (x - 5) + ' ' + y + 'H' + (x + 5) + (plus ? 'M' + x + ' ' + (y - 5) + 'V' + (y + 5) : '') + '" stroke="' + K + '" stroke-width="2.4"/>'; }
+  s += box(207, 128, 265, 90) + ln("M340 218V240") + ln("M340 286V316", true) + sg(372, 298, true);
+  s += box(207, 318, 271, 90);
+  s += ln("M283 408V448") + ln("M283 492V533", true) + sg(262, 518, true);
+  s += ln("M415 408V448") + ln("M415 492V533", true) + sg(437, 520, true);
+  s += box(200, 535, 125, 65) + box(380, 535, 118, 65);
+  s += ln("M258 600V662", true) + ln("M224 682H133V357H205", true, true) + sg(160, 338, false);
+  s += ln("M297 600V752", true) + ln("M313 582V752", true) + ln("M313 584Q313 566 321 566Q329 566 331 578L377 686");
+  s += sg(285, 768, true) + sg(328, 768, true);
+  s += ln("M415 600V682", true) + ln("M430 698H570V160H476", true, true) + ln("M570 348H482", true, true);
+  s += sg(497, 142, false) + sg(519, 330, false);
+  s += sg(534, 760, true) + t(550, 767, "= stimulation", 19, TR, "start");
+  s += sg(534, 800, false) + t(550, 807, "= inhibition", 19, TR, "start");
+  return s;
+}
+
+var SCHEMAS = [
+ { id:"appareil", title:"L'appareil génital masculin", vb:[60,110,1830,1110], r:36,
+   img:{ href:"img/appareil.jpg", x:0, y:0, w:1920, h:1320 },
+   items:[
+    { label:"Vessie", note:"Réservoir de l'urine. Ce n'est pas un organe génital, mais elle sert de repère.", p:[[632,323]] },
+    { label:"Canal déférent", note:"Conduit les spermatozoïdes de l'épididyme jusqu'à l'urètre.", p:[[1612,472]] },
+    { label:"Vésicule séminale", alt:["vesicules seminales"], note:"Glande annexe : son liquide, riche en fructose, nourrit les spermatozoïdes.", p:[[1612,588]] },
+    { label:"Prostate", note:"Glande annexe : sécrète le liquide prostatique, une partie du sperme.", p:[[1612,704]] },
+    { label:"Glande de Cowper", alt:["glandes de cowper"], note:"Petite glande annexe sous la prostate ; son liquide précède l'éjaculation.", p:[[1612,820]] },
+    { label:"Bulbe du pénis (corps spongieux)", alt:["bulbe du penis","bulbe","bulbe spongieux"], note:"Base renflée du corps spongieux, traversée par l'urètre.", p:[[1612,913]] },
+    { label:"Urètre", alt:["uretre"], note:"Canal commun : il conduit l'urine et le sperme vers l'extérieur.", p:[[1612,1052]] },
+    { label:"Épididyme", note:"Coiffe le testicule : les spermatozoïdes y sont stockés et y deviennent mobiles.", p:[[940,1000]] },
+    { label:"Testicule", alt:["testicules"], note:"Gonade mâle : spermatozoïdes (tubes séminifères) et testostérone (cellules de Leydig).", p:[[940,1072]] },
+    { label:"Scrotum", alt:["bourses"], note:"Sac de peau qui contient les testicules, gardés à une température plus basse (≈ 34 °C).", p:[[940,1144]] },
+    { label:"Corps caverneux", alt:["corps caverneux du penis"], note:"Tissu érectile du pénis.", p:[[300,775]] },
+    { label:"Gland (corps spongieux)", alt:["gland","gland du penis"], note:"Extrémité renflée du corps spongieux.", p:[[300,905]] },
+    { label:"Prépuce", note:"Repli de peau qui recouvre le gland.", p:[[300,1058]] },
+    { label:"Orifice urinaire", alt:["meat urinaire","orifice uro-genital","orifice urogenital"], note:"Ouverture de l'urètre vers l'extérieur.", p:[[368,1188]] }
+   ]},
+ { id:"tube", title:"Coupe de tubes séminifères", vb:[0,0,1592,1420], r:34,
+   img:{ href:"img/tube.jpg", x:0, y:0, w:1592, h:1420 },
+   items:[
+    { label:"Tube séminifère", alt:["tube seminifere","paroi du tube"], note:"Lieu de la spermatogenèse : de la périphérie vers la lumière.", p:[[56,694]], line:[78,716,160,796] },
+    { label:"Lumière du tube", alt:["lumiere des tubes","lumiere"], note:"Les spermatozoïdes y sont libérés.", p:[[205,160],[1464,1306]] },
+    { label:"Cellules de Leydig", alt:["cellule de leydig","cellules interstitielles","leydig"], note:"Dans le tissu interstitiel : sécrètent la testostérone sous l'action de la LH.", p:[[1400,218]] },
+    { label:"Vaisseau sanguin", alt:["capillaire sanguin","vaisseau"], note:"Emporte la testostérone dans le sang ; apporte la LH et la FSH.", p:[[1398,50]] },
+    { label:"Enveloppe conjonctive", alt:["membrane propre","gaine conjonctive","tissu conjonctif","membrane basale","enveloppe"], note:"Paroi qui entoure chaque tube séminifère.", p:[[1522,262]] },
+    { label:"Cellule de Sertoli", alt:["cellules de sertoli","sertoli"], note:"Nourrit et soutient les cellules germinales ; sécrète ABP et inhibine (sous FSH).", p:[[1180,746]] },
+    { label:"Spermatogonie (2n)", alt:["spermatogonies"], note:"À la périphérie du tube ; se multiplie par mitoses.", p:[[1524,344]] },
+    { label:"Spermatocyte I (2n)", alt:["spermatocyte 1","spermatocyte primaire","spermatocytes i"], note:"La plus grosse cellule ; va faire la méiose I.", p:[[1524,498]] },
+    { label:"Spermatocyte II (n)", alt:["spermatocyte 2","spermatocyte secondaire","spermatocytes ii"], note:"Issu de la méiose I (réductionnelle) : n chromosomes.", p:[[1524,676]] },
+    { label:"Spermatide (n)", alt:["spermatides"], note:"Issue de la méiose II ; se différencie en spermatozoïde.", p:[[1520,770]] },
+    { label:"Spermatozoïde (n)", alt:["spermatozoides","spz"], note:"Gamète mâle, libéré dans la lumière du tube.", p:[[1520,946]] }
+   ]},
+ { id:"spg", title:"La spermatogenèse", vb:[640,40,1380,1680], r:30,
+   img:{ href:"img/spermatogenese.jpg", x:600, y:0, w:1400, h:1760 },
+   extra:'<path d="M770 50H750V690H770M770 705H750V840H770M770 855H750V1150H770M770 1165H750V1690H770" fill="none" stroke="' + INK + '" stroke-width="5"/>',
+   items:[
+    { label:"Spermatogonies (2n)", alt:["spermatogonie"], note:"Cellules souches diploïdes (2n) à la périphérie du tube.", p:[[1966,625]], line:[1700,625,1934,625] },
+    { label:"Spermatocytes I (2n)", alt:["spermatocyte i","spermatocyte 1","spermatocytes primaires"], note:"Grosses cellules 2n, issues de l'accroissement.", p:[[1966,752]], line:[1550,752,1934,752] },
+    { label:"Spermatocytes II (n)", alt:["spermatocyte ii","spermatocyte 2","spermatocytes secondaires"], note:"Issus de la méiose I : n chromosomes à 2 chromatides.", p:[[1966,920]], line:[1695,920,1934,920] },
+    { label:"Spermatides (n)", alt:["spermatide"], note:"Issues de la méiose II : n chromosomes à 1 chromatide.", p:[[1966,1088]], line:[1890,1088,1934,1088] },
+    { label:"Spermatozoïdes (n)", alt:["spermatozoide"], note:"Gamètes mâles, obtenus sans division.", p:[[1966,1330]], line:[1860,1330,1934,1330] },
+    { label:"Multiplication (mitoses)", alt:["multiplication","phase de multiplication"], note:"Mitoses successives : le nombre de spermatogonies augmente.", p:[[700,370]] },
+    { label:"Accroissement", alt:["phase d'accroissement","croissance"], note:"La spermatogonie grossit et devient spermatocyte I (l'ADN se duplique).", p:[[700,772]] },
+    { label:"Maturation (méiose)", alt:["maturation","meiose","phase de maturation"], note:"Méiose : 1 spermatocyte I → 2 spermatocytes II → 4 spermatides (2n → n).", p:[[700,1002]] },
+    { label:"Différenciation (spermiogenèse)", alt:["differenciation","spermiogenese"], note:"Sans division : la spermatide ronde devient spermatozoïde (flagelle, acrosome).", p:[[700,1428]] }
+   ]},
+ { id:"spz", title:"Le spermatozoïde", vb:[0,30,1920,470], r:36,
+   img:{ href:"img/spermatozoide.jpg", x:0, y:0, w:1920, h:520 },
+   items:[
+    { label:"Acrosome", note:"Vésicule d'enzymes qui digèrent les enveloppes de l'ovocyte.", p:[[158,70]] },
+    { label:"Membrane plasmique", alt:["membrane cellulaire","membrane"], note:"Entoure toute la cellule.", p:[[306,104]] },
+    { label:"Noyau", note:"Contient n chromosomes : l'information génétique paternelle.", p:[[370,164]] },
+    { label:"Centriole", note:"À la base du flagelle : il organise le filament axial.", p:[[432,204]] },
+    { label:"Mitochondrie", alt:["mitochondries"], note:"En spirale dans la pièce intermédiaire : fournissent l'ATP du mouvement.", p:[[630,180]] },
+    { label:"Disque terminal", alt:["annulus","anneau"], note:"Anneau qui sépare la pièce intermédiaire de la pièce principale.", p:[[760,228]] },
+    { label:"Filament axial", alt:["axoneme"], note:"Squelette du flagelle, responsable des battements.", p:[[1088,170]] },
+    { label:"Tête", alt:["tete"], note:"Noyau + acrosome.", p:[[163,462]] },
+    { label:"Pièce intermédiaire", alt:["piece intermediaire"], note:"Contient les mitochondries : la « centrale d'énergie ».", p:[[483,462]] },
+    { label:"Pièce principale", alt:["piece principale","flagelle"], note:"La plus longue partie du flagelle.", p:[[1235,462]] },
+    { label:"Pièce terminale", alt:["piece terminale"], note:"Extrémité fine du flagelle.", p:[[1813,466]] }
+   ]},
+ { id:"reg", title:"Régulation hormonale chez l'homme", vb:[100,112,562,716], r:13,
+   draw:regDrawing,
+   items:[
+    { label:"Hypothalamus", note:"Ses neurones sécrètent la GnRH (de façon pulsatile).", p:[[340,173]] },
+    { label:"GnRH", alt:["gn-rh","gnrh"], note:"Neurohormone : stimule la sécrétion de FSH et de LH par l'hypophyse.", p:[[340,263]] },
+    { label:"Hypophyse antérieure", alt:["antehypophyse","hypophyse","adenohypophyse"], note:"Sécrète la FSH et la LH.", p:[[342,363]] },
+    { label:"FSH", alt:["f.s.h"], note:"Agit sur les cellules de Sertoli (ABP, inhibine).", p:[[283,470]] },
+    { label:"LH", alt:["l.h"], note:"Agit sur les cellules de Leydig : sécrétion de testostérone.", p:[[415,470]] },
+    { label:"Cellules de Sertoli", alt:["cellule de sertoli","sertoli"], note:"Sous FSH : sécrètent l'ABP et l'inhibine, nourrissent la lignée germinale.", p:[[262,567]] },
+    { label:"Cellules de Leydig", alt:["cellule de leydig","leydig"], note:"Sous LH : sécrètent la testostérone.", p:[[439,567]] },
+    { label:"Inhibine", note:"Rétrocontrôle négatif sur la FSH seulement.", p:[[240,684]] },
+    { label:"Testostérone", alt:["testosterone"], note:"Stéroïde : caractères sexuels, spermatogenèse ; RC (−) sur GnRH et LH.", p:[[415,698]] },
+    { label:"ABP", alt:["a.b.p","apg","a.p.g","androgen binding protein","proteine de liaison"], note:"Protéine de liaison (pas une hormone) : concentre la testostérone dans le tube.", p:[[305,716]] },
+    { label:"Rétrocontrôle négatif", alt:["retrocontrole negatif","retrocontrole","rc-","rc (-)","feedback negatif"], note:"La testostérone freine l'hypothalamus et l'hypophyse ; l'inhibine freine la FSH.", p:[[570,252],[133,520]] },
+    { label:"Spermatogenèse", alt:["activation de la spermatogenese","spermatogenese","lignee germinale"], note:"Testostérone + ABP + FSH activent la lignée germinale.", p:[[306,800]] }
+   ]}
+];
+SCHEMAS.forEach(function (s) { s.items.forEach(function (it, i) { it.n = i + 1; it.key = s.id + ":" + it.n; it.s = s; }); });
+var BY_ID = {}; SCHEMAS.forEach(function (s) { BY_ID[s.id] = s; });
+
+var LEVELS = [
+  { ico:"👀", name:"شوف و احفظ", desc:"الـ légende كاملة. اضغط على كل إسم يبانلك وين.", study:true },
+  { ico:"🎯", name:"اختار من 3", desc:"رقم يضوي، و إنت تختار الإسم الصحيح من 3.", mode:"choice" },
+  { ico:"🧩", name:"بنك الكلمات", desc:"كل الأسامي قدّامك، حطّ كل واحد في بلاصتو.", mode:"bank" },
+  { ico:"✍️", name:"اكتب بمساعدة", desc:"تكتب الإسم، و عندك أوّل حرف و عدد الحروف.", mode:"type", mask:true },
+  { ico:"🧠", name:"اكتب من ذاكرتك", desc:"بلاش مساعدة : كيما نهار الباك.", mode:"type" },
+  { ico:"🔥", name:"التحدي", desc:"من ذاكرتك، الوقت يجري و 3 قلوب برك.", mode:"type", boss:true }
+];
+
+/* =====================================================================
+   STATE (localStorage, wrapped)
+   ===================================================================== */
+var KEY = "seriyet-schemas-v1";
+var S = { stars:{}, best:{}, box:{}, days:[], sound:true, zen:false };
+try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function today(off) { var d = new Date(); d.setDate(d.getDate() + (off || 0)); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+function stars(id) { return S.stars[id] || (S.stars[id] = [0, 0, 0, 0, 0, 0]); }
+var GAPS = [0, 1, 3, 7, 15, 30];
+function boxOf(k) { return S.box[k] || { b:0, due:"" }; }
+function mastery(s) { var t = 0; s.items.forEach(function (it) { t += boxOf(it.key).b; }); return Math.round(100 * t / (5 * s.items.length)); }
+function dueItems() {
+  var t = today(), out = [];
+  SCHEMAS.forEach(function (s) { s.items.forEach(function (it) { var b = boxOf(it.key); if (b.b > 0 && b.due <= t) out.push(it); }); });
+  return out;
+}
+function streak() {
+  var set = {}; S.days.forEach(function (d) { set[d] = 1; });
+  var n = 0, off = set[today()] ? 0 : -1;
+  while (set[today(off - n)]) n++;
+  return n;
+}
+
+/* =====================================================================
+   SOUND
+   ===================================================================== */
+var AC = null;
+function tone(freqs, dur) {
+  if (!S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    freqs.forEach(function (f, i) {
+      var o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + i * dur;
+      o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(.18, t0 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + dur + .02);
+    });
+  } catch (e) {}
+}
+var sfx = { ok:function () { tone([660, 880], .09); }, bad:function () { tone([220, 170], .14); }, win:function () { tone([523, 659, 784, 1046], .12); } };
+
+/* =====================================================================
+   RENDER A SCHEMA AS SVG
+   ===================================================================== */
+function schemaSVG(s, pins) {
+  var v = s.vb, h = '<svg viewBox="' + v.join(" ") + '" role="img" aria-label="' + s.title + '" font-family="Rubik, sans-serif">';
+  h += '<rect x="' + v[0] + '" y="' + v[1] + '" width="' + v[2] + '" height="' + v[3] + '" fill="#fff"/>';
+  if (s.img) h += '<image href="' + s.img.href + '" x="' + s.img.x + '" y="' + s.img.y + '" width="' + s.img.w + '" height="' + s.img.h + '"/>';
+  if (s.draw) h += s.draw();
+  if (s.extra) h += s.extra;
+  if (pins) {
+    var sw = s.r * .2;
+    s.items.forEach(function (it) {
+      if (it.line) h += '<line class="lead-line" x1="' + it.line[0] + '" y1="' + it.line[1] + '" x2="' + it.line[2] + '" y2="' + it.line[3] + '" stroke-width="' + sw + '"/>';
+    });
+    s.items.forEach(function (it) {
+      it.p.forEach(function (p) {
+        h += '<g class="pin" data-n="' + it.n + '"><circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + s.r + '" stroke-width="' + sw + '"/>' +
+             '<text x="' + p[0] + '" y="' + p[1] + '" font-size="' + (s.r * (it.n > 9 ? 1.05 : 1.2)) + '">' + it.n + '</text></g>';
+      });
+    });
+  }
+  return h + '</svg>';
+}
+
+/* =====================================================================
+   ANSWER MATCHING
+   ===================================================================== */
+function norm(t) {
+  t = t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe");
+  t = t.replace(/\((2n|n)\)/g, " ").replace(/[()'’.,;:!?«»"-]/g, " ");
+  t = t.replace(/\b(du|de|des|la|le|les|l|d|un|une)\b/g, " ");
+  t = t.replace(/\b(ii|2|secondaires?)\b/g, " 2 ").replace(/\b(i|1|primaires?)\b/g, " 1 ");
+  return t.split(/\s+/).filter(Boolean).map(function (w) { return w.length > 3 ? w.replace(/[sx]$/, "") : w; }).join(" ");
+}
+function lev(a, b) {
+  var m = a.length, n = b.length, d = [], i, j;
+  for (i = 0; i <= m; i++) d[i] = [i];
+  for (j = 0; j <= n; j++) d[0][j] = j;
+  for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[m][n];
+}
+// returns "exact" | "close" | false
+function check(input, it) {
+  var a = norm(input); if (!a) return false;
+  var cands = [it.label].concat(it.alt || []).map(norm);
+  // also accept the label without its parenthesis, e.g. "Bulbe du pénis"
+  cands.push(norm(it.label.replace(/\(.*\)/, "")));
+  for (var i = 0; i < cands.length; i++) if (a === cands[i]) return "exact";
+  for (i = 0; i < cands.length; i++) {
+    var c = cands[i], tol = c.length >= 10 ? 2 : c.length >= 5 ? 1 : 0;
+    if (/\d/.test(c) && a.replace(/\D/g, "") !== c.replace(/\D/g, "")) continue; // I vs II must match
+    if (tol && lev(a, c) <= tol) return "close";
+  }
+  return false;
+}
+function maskOf(label, shown) {
+  // first letter of each word + underscores; `shown` extra letters revealed from the start
+  var base = label.replace(/\s*\(.*\)/, ""), out = "", k = 0;
+  for (var i = 0; i < base.length; i++) {
+    var ch = base[i];
+    if (ch === " " || ch === "'" || ch === "-") { out += ch === " " ? "  " : ch; continue; }
+    var first = i === 0 || /[\s'-]/.test(base[i - 1]);
+    out += (first || k < shown) ? "<b>" + ch + "</b>" : "_";
+    k++;
+  }
+  var par = label.match(/\(.*\)/);
+  return out + (par ? ' <span style="letter-spacing:0">' + par[0] + "</span>" : "");
+}
+
+/* =====================================================================
+   DOM HELPERS
+   ===================================================================== */
+function $(id) { return document.getElementById(id); }
+function show(id) { document.querySelectorAll(".screen").forEach(function (el) { el.classList.toggle("on", el.id === id); }); window.scrollTo(0, 0); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+function starStr(n, max) { var h = ""; for (var i = 0; i < (max || 3); i++) h += i < n ? "★" : '<span class="off">★</span>'; return h; }
+document.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { stopTimer(); if (b.dataset.go === "home") renderHome(); show(b.dataset.go); }; });
+
+/* =====================================================================
+   HOME
+   ===================================================================== */
+function renderHome() {
+  var total = 0, m = 0;
+  $("cards").innerHTML = SCHEMAS.map(function (s, i) {
+    var st = stars(s.id), sum = st.slice(1).reduce(function (a, b) { return a + b; }, 0); total += sum; var ms = mastery(s); m += ms;
+    return '<button class="card" data-s="' + s.id + '"><div class="thumb">' + schemaSVG(s, false) + '</div>' +
+           '<h3 class="lat" style="text-align:left">' + (i + 1) + ". " + s.title + '</h3>' +
+           '<div class="bar"><i style="width:' + ms + '%"></i></div>' +
+           '<div class="meta"><span>🧠 ' + ms + '% محفوظ</span><span class="stars">' + starStr(Math.min(5, Math.round(sum / 3)), 5) + '</span></div></button>';
+  }).join("");
+  document.querySelectorAll(".card").forEach(function (c) { c.onclick = function () { openLevels(c.dataset.s); }; });
+  $("stStreak").textContent = "🔥 " + streak() + " يوم";
+  $("stStars").textContent = "⭐ " + total;
+  $("stMastery").textContent = "🧠 " + Math.round(m / SCHEMAS.length) + "%";
+  var due = dueItems().length;
+  $("reviewBtn").disabled = !due;
+  var nextDue = ""; SCHEMAS.forEach(function (s) { s.items.forEach(function (it) { var b = boxOf(it.key); if (b.b && b.due > today() && (!nextDue || b.due < nextDue)) nextDue = b.due; }); });
+  $("reviewInfo").textContent = due ? due + " légendes تستنى فيك اليوم"
+    : nextDue ? "✔️ كمّلت مراجعة اليوم. المراجعة الجاية : " + (nextDue === today(1) ? "غدوة" : nextDue)
+    : "العب أي مستوى، و الـ légendes الي تعدّيهم يرجعولك هوني للمراجعة.";
+  $("soundBtn").setAttribute("aria-pressed", S.sound); $("soundBtn").textContent = S.sound ? "🔊" : "🔇";
+  $("zenBtn").setAttribute("aria-pressed", S.zen);
+}
+$("soundBtn").onclick = function () { S.sound = !S.sound; save(); renderHome(); };
+$("zenBtn").onclick = function () {
+  S.zen = !S.zen; save(); renderHome();
+  toast(S.zen ? "🧘 Mode zen : بلاش وقت و بلاش قلوب (ما عدا التحدي)" : "⏱️ الوقت و القلوب رجعو");
+};
+$("reviewBtn").onclick = function () {
+  var items = shuffle(dueItems()).slice(0, 15);
+  if (items.length) startRound({ review:true, items:items, level:4 });
+};
+function toast(t) {
+  var d = document.createElement("div");
+  d.textContent = t; d.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#08214A;color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;z-index:10;max-width:90vw;text-align:center";
+  document.body.appendChild(d); setTimeout(function () { d.remove(); }, 2600);
+}
+
+/* =====================================================================
+   LEVELS
+   ===================================================================== */
+var curSchema = null;
+function openLevels(id) {
+  curSchema = BY_ID[id];
+  var st = stars(id);
+  $("lvTitle").textContent = curSchema.title;
+  $("lvList").innerHTML = LEVELS.map(function (L, i) {
+    var locked = i > 1 && !st[i - 1];
+    return '<button class="lvl' + (L.boss ? " boss" : "") + '" data-l="' + i + '"' + (locked ? " disabled" : "") + '>' +
+           '<span class="ico">' + (locked ? "🔒" : L.ico) + '</span><span class="t"><b>' + (i ? i + ". " : "") + L.name + '</b><span>' + L.desc + '</span></span>' +
+           (i ? '<span class="stars">' + starStr(st[i]) + '</span>' : "") + '</button>';
+  }).join("");
+  document.querySelectorAll(".lvl").forEach(function (b) { b.onclick = function () {
+    var l = +b.dataset.l;
+    if (l === 0) startStudy(curSchema); else startRound({ schema:curSchema, items:curSchema.items.slice(), level:l });
+  }; });
+  show("levels");
+}
+
+/* =====================================================================
+   GAME ENGINE
+   ===================================================================== */
+var G = null, tick = null;
+function stopTimer() { if (tick) clearInterval(tick); tick = null; }
+function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+
+function drawStage(s) {
+  if (G && G.drawn === s.id) return;
+  $("scroller").innerHTML = schemaSVG(s, true);
+  $("schName").textContent = s.title;
+  var wide = s.vb[2] / s.vb[3] > 2.5 && innerWidth < 700;
+  $("stage").classList.toggle("zoom", wide); $("zoomBtn").setAttribute("aria-pressed", wide);
+  if (G) G.drawn = s.id;
+}
+function pinsOf(n) { return document.querySelectorAll('#scroller .pin[data-n="' + n + '"]'); }
+
+function startStudy(s) {
+  stopTimer();
+  G = { study:true, schema:s };
+  show("game");
+  drawStage(s);
+  $("hearts").innerHTML = ""; $("timer").hidden = true; $("progBar").style.width = "0";
+  $("askBox").innerHTML = '<div class="ask">👀 شوف و احفظ</div><div class="sub">اضغط على كل إسم باش يضوي الرقم متاعو. خوذ وقتك، و كي تحس روحك حاضر ابدا المستوى 1.</div>';
+  $("answers").innerHTML = '<button class="btn" id="goL1">🎯 نبدا المستوى 1</button>';
+  $("goL1").onclick = function () { startRound({ schema:s, items:s.items.slice(), level:1 }); };
+  $("tools").hidden = true; $("fb").innerHTML = "";
+  var lg = $("legend"); lg.className = "legend study";
+  lg.innerHTML = s.items.map(function (it) { return '<li data-n="' + it.n + '"><span class="n">' + it.n + '</span><span class="l">' + esc(it.label) + '</span></li>'; }).join("");
+  lg.querySelectorAll("li").forEach(function (li) { li.onclick = function () {
+    document.querySelectorAll("#scroller .pin").forEach(function (p) { p.classList.remove("active"); });
+    lg.querySelectorAll("li").forEach(function (x) { x.classList.toggle("active", x === li); });
+    pinsOf(li.dataset.n).forEach(function (p) { p.classList.add("active"); });
+    scrollToPin(li.dataset.n);
+  }; });
+  var visits = S.days; if (visits.indexOf(today()) < 0) { visits.push(today()); save(); }
+}
+
+function startRound(o) {
+  stopTimer();
+  var L = LEVELS[o.level], zen = S.zen && !L.boss;
+  G = { review:!!o.review, level:o.level, L:L, schema:o.schema, queue:shuffle(o.items), total:o.items.length, done:{}, missed:{}, hinted:{},
+        errors:0, hearts:zen ? Infinity : 3, zen:zen, combo:0, best:0, t0:Date.now(), limit:L.boss ? o.items.length * 12 + 15 : 0, drawn:null, locked:false };
+  show("game");
+  $("tools").hidden = false; $("timer").hidden = zen; $("combo").textContent = "";
+  renderHearts();
+  if (!zen) { tick = setInterval(updTimer, 250); updTimer(); }
+  next();
+}
+function updTimer() {
+  var el = (Date.now() - G.t0) / 1000;
+  if (G.limit) {
+    var left = G.limit - el; $("timer").textContent = fmt(left); $("timer").classList.toggle("warn", left <= 15);
+    if (left <= 0) { stopTimer(); finish(false, "⏱️ الوقت وفى"); }
+  } else { $("timer").textContent = fmt(el); $("timer").classList.remove("warn"); }
+}
+function renderHearts() {
+  if (G.hearts === Infinity) { $("hearts").innerHTML = ""; return; }
+  var h = ""; for (var i = 0; i < 3; i++) h += i < G.hearts ? "❤️" : '<span class="lost">❤️</span>'; $("hearts").innerHTML = h;
+}
+function renderLegend(s) {
+  var lg = $("legend"); lg.className = "legend";
+  if (G.review) { lg.innerHTML = ""; return; }
+  lg.innerHTML = s.items.map(function (it) {
+    var d = G.done[it.key], a = G.cur && G.cur.key === it.key;
+    return '<li class="' + (d ? "done" : "") + (a ? " active" : "") + '"><span class="n">' + it.n + '</span><span class="l">' + (d ? esc(it.label) : "…") + '</span></li>';
+  }).join("");
+}
+function scrollToPin(n) {
+  var sc = $("scroller"), p = pinsOf(n)[0];
+  if (!p || sc.scrollWidth <= sc.clientWidth + 2) return;
+  var r = p.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+  sc.scrollBy({ left:r.left - sr.left - sr.width / 2, top:r.top - sr.top - sr.height / 2, behavior:"smooth" });
+}
+$("zoomBtn").onclick = function () {
+  var z = $("stage").classList.toggle("zoom"); this.setAttribute("aria-pressed", z);
+  if (G && G.cur) setTimeout(function () { scrollToPin(G.cur.n); }, 50);
+};
+
+function next() {
+  G.locked = false;
+  $("fb").innerHTML = "";
+  var found = Object.keys(G.done).length;
+  $("progBar").style.width = (100 * found / G.total) + "%";
+  if (!G.queue.length) return finish(true);
+  var it = G.cur = G.queue.shift(), s = it.s;
+  drawStage(s);
+  document.querySelectorAll("#scroller .pin").forEach(function (p) {
+    var k = s.id + ":" + p.dataset.n;
+    p.classList.toggle("done", !!G.done[k]); p.classList.toggle("active", +p.dataset.n === it.n);
+  });
+  scrollToPin(it.n);
+  renderLegend(s);
+  G.hintLv = 0;
+  var L = G.L;
+  $("askBox").innerHTML = '<div class="ask">شنوّة إسم الرقم <span class="num lat">' + it.n + '</span> ؟</div>' +
+    (G.review ? '<div class="sub">🔁 مراجعة · <span class="lat">' + esc(s.title) + '</span></div>' : "");
+  $("hintBtn").hidden = !!L.boss; $("hintBtn").disabled = false;
+  var A = $("answers");
+  if (L.mode === "choice") {
+    var others = shuffle(s.items.filter(function (x) { return x !== it; })).slice(0, 2);
+    A.innerHTML = shuffle([it].concat(others)).map(function (x) { return '<button class="opt" data-k="' + x.key + '">' + esc(x.label) + '</button>'; }).join("");
+    A.className = "answers";
+    A.querySelectorAll(".opt").forEach(function (b) { b.onclick = function () { pick(b, b.dataset.k === it.key, BY_KEY[b.dataset.k].label); }; });
+  } else if (L.mode === "bank") {
+    A.className = "answers bank";
+    A.innerHTML = shuffle(s.items).map(function (x) { return '<button class="opt' + (G.done[x.key] ? " used" : "") + '" data-k="' + x.key + '">' + esc(x.label) + '</button>'; }).join("");
+    A.querySelectorAll(".opt").forEach(function (b) { b.onclick = function () { pick(b, b.dataset.k === it.key, BY_KEY[b.dataset.k].label); }; });
+  } else {
+    A.className = "answers";
+    A.innerHTML = '<div class="mask" id="mask"' + (L.mask ? "" : " hidden") + '>' + (L.mask ? maskOf(it.label, 0) : "") + '</div>' +
+      '<form class="type" id="typeF" autocomplete="off"><input id="inp" lang="fr" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="اكتب الإسم بالفرنسية…" dir="ltr">' +
+      '<button class="btn" type="submit">✓</button></form>';
+    $("typeF").onsubmit = function (e) {
+      e.preventDefault(); if (G.locked) return;
+      var v = $("inp").value.trim(); if (!v) return;
+      var r = check(v, it);
+      answer(!!r, v, r === "close");
+    };
+    setTimeout(function () { var i = $("inp"); if (i && matchMedia("(pointer:fine)").matches) i.focus(); }, 30);
+  }
+}
+var BY_KEY = {}; SCHEMAS.forEach(function (s) { s.items.forEach(function (it) { BY_KEY[it.key] = it; }); });
+
+$("hintBtn").onclick = function () {
+  if (!G || G.locked) return;
+  var it = G.cur, L = G.L; G.hintLv++; G.hinted[it.key] = 1;
+  if (L.mode === "choice") {
+    var wrong = [].filter.call(document.querySelectorAll("#answers .opt"), function (b) { return b.dataset.k !== it.key && !b.classList.contains("gone"); });
+    if (wrong[0]) wrong[0].classList.add("gone");
+    this.disabled = true;
+  } else if (L.mode === "bank") {
+    var bad = shuffle([].filter.call(document.querySelectorAll("#answers .opt:not(.used)"), function (b) { return b.dataset.k !== it.key; }));
+    bad.slice(0, Math.ceil(bad.length / 2)).forEach(function (b) { b.classList.add("gone"); });
+    this.disabled = true;
+  } else {
+    var m = $("mask"); m.hidden = false; m.innerHTML = maskOf(it.label, G.hintLv + (L.mask ? 0 : -1) + 1);
+    if (G.hintLv >= 4) this.disabled = true;
+    var i = $("inp"); if (i) i.focus();
+  }
+};
+
+function pick(btn, ok, chosen) {
+  if (G.locked) return;
+  btn.classList.add(ok ? "right" : "wrong");
+  if (ok && G.L.mode === "bank") btn.classList.add("used");
+  answer(ok, chosen, false);
+}
+
+function answer(ok, given, close) {
+  var it = G.cur; G.locked = true;
+  var recall = G.L.mode === "type";
+  var k = it.key, b = boxOf(k);
+  if (ok) {
+    sfx.ok(); G.combo++; G.best = Math.max(G.best, G.combo);
+    G.done[k] = 1;
+    // spaced repetition: only free recall without hint promotes the label
+    if (recall && !G.hinted[k] && !G.missed[k]) { b.b = Math.min(5, b.b + 1); b.due = today(GAPS[b.b]); }
+    else if (!b.b) { b.b = 1; b.due = today(1); }
+    S.box[k] = b; save();
+    pinsOf(it.n).forEach(function (p) { p.classList.remove("active"); p.classList.add("done"); });
+    renderLegend(it.s);
+    $("combo").textContent = G.combo >= 3 ? "🔥 x" + G.combo : "";
+    $("fb").innerHTML = '<div class="fb ok"><div>' + (close ? "✅ صحيح ! أما ردّ بالك على الكتيبة :" : "✅ برافو !") + '</div><div class="name">' + esc(it.label) + '</div><div class="note">' + esc(it.note) + '</div></div>';
+    setTimeout(next, close ? 2100 : 1300);
+  } else {
+    sfx.bad(); G.combo = 0; $("combo").textContent = "";
+    G.errors++; G.missed[k] = 1;
+    if (recall || G.review) { b.b = 1; b.due = today(1); S.box[k] = b; save(); }
+    if (G.hearts !== Infinity) { G.hearts--; renderHearts(); }
+    // the missed label comes back ~3 questions later
+    G.queue.splice(Math.min(3, G.queue.length), 0, it);
+    if (G.L.mode !== "type") document.querySelectorAll('#answers .opt[data-k="' + it.key + '"]').forEach(function (x) { x.classList.add("right"); });
+    pinsOf(it.n).forEach(function (p) { p.classList.add("flash"); });
+    var out = G.hearts <= 0;
+    $("fb").innerHTML = '<div class="fb bad"><div>❌ الجواب الصحيح :</div><div class="name">' + esc(it.label) + '</div>' +
+      (given ? '<div class="yours">' + esc(given) + '</div>' : "") + '<div class="note">' + esc(it.note) + '</div>' +
+      '<div class="sub">' + (out ? "" : "باهي، توّا يرجعلك بعد شوية 😉") + '</div>' +
+      '<button class="btn" id="goOn">' + (out ? "💔 كمّل" : "فهمت، كمّل") + '</button></div>';
+    $("goOn").onclick = function () {
+      pinsOf(it.n).forEach(function (p) { p.classList.remove("flash"); });
+      if (out) finish(false, "💔 القلوب وفاو"); else next();
+    };
+    $("goOn").focus();
+  }
+}
+
+function finish(won, why) {
+  stopTimer();
+  var secs = Math.round((Date.now() - G.t0) / 1000), first = G.total - Object.keys(G.missed).length;
+  if (S.days.indexOf(today()) < 0) S.days.push(today());
+  if (S.days.length > 400) S.days = S.days.slice(-400);
+  var n = 0, html = "";
+  if (won) {
+    n = G.errors === 0 && !Object.keys(G.hinted).length ? 3 : G.errors <= 2 ? 2 : 1;
+    if (!G.review) {
+      var st = stars(G.schema.id); st[G.level] = Math.max(st[G.level], n);
+      var bk = S.best[G.schema.id] || (S.best[G.schema.id] = []); if (!G.zen && (!bk[G.level] || secs < bk[G.level])) bk[G.level] = secs;
+    }
+    sfx.win(); confetti();
+  }
+  save();
+  var missed = Object.keys(G.missed).map(function (k) { return BY_KEY[k].label; });
+  html += '<div class="big">' + (won ? (n === 3 ? "🏆" : "🎉") : "💪") + '</div>';
+  html += '<h2>' + (won ? (G.review ? "كمّلت مراجعة اليوم !" : n === 3 ? "مثالي ! بلاش حتى غلطة" : "برافو، كمّلت !") : (why || "ما كمّلتش")) + '</h2>';
+  if (won) html += '<div class="stars">' + starStr(n) + '</div>';
+  else html += '<p class="msg">ما فمّا حتى مشكل : الي غلطت فيهم تسجّلو و باش يرجعولك في المراجعة. عاود، المرة الجاية تمشي خير.</p>';
+  html += '<div class="nums"><div><b>' + Object.keys(G.done).length + "/" + G.total + '</b>صحيح</div><div><b>' + Math.round(100 * Math.max(0, first) / G.total) + '%</b>من أوّل مرة</div><div><b class="lat">' + (G.zen ? "—" : fmt(secs)) + '</b>الوقت</div></div>';
+  if (missed.length) html += '<div class="redo"><b>À revoir :</b><br>' + missed.map(esc).join("<br>") + '</div>';
+  html += '<div class="act">';
+  if (won && !G.review && G.level < LEVELS.length - 1) html += '<button class="btn ok" id="nextLvl">' + LEVELS[G.level + 1].ico + " المستوى الجاي : " + LEVELS[G.level + 1].name + '</button>';
+  if (!G.review) html += '<button class="btn ghost" id="again">🔁 عاود</button>';
+  if (!won && !G.review) html += '<button class="btn ghost" id="study">👀 شوف الـ légende كاملة</button>';
+  html += '<button class="btn ghost" id="home2">🏠 الرئيسية</button></div>';
+  $("endBox").innerHTML = html;
+  var R = G;
+  if ($("nextLvl")) $("nextLvl").onclick = function () { startRound({ schema:R.schema, items:R.schema.items.slice(), level:R.level + 1 }); };
+  if ($("again")) $("again").onclick = function () { startRound({ schema:R.schema, items:R.schema.items.slice(), level:R.level }); };
+  if ($("study")) $("study").onclick = function () { startStudy(R.schema); };
+  $("home2").onclick = function () { renderHome(); show("home"); };
+  show("end");
+}
+$("quitBtn").onclick = function () {
+  stopTimer();
+  if (G && !G.review && G.schema) openLevels(G.schema.id); else { renderHome(); show("home"); }
+};
+
+/* =====================================================================
+   CONFETTI
+   ===================================================================== */
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  var c = $("confetti"), x = c.getContext("2d"), W = c.width = innerWidth, H = c.height = innerHeight, P = [], t = 0;
+  c.hidden = false;
+  var cols = ["#0566EA", "#12A37F", "#F5A524", "#E2493A", "#8B5CF6"];
+  for (var i = 0; i < 140; i++) P.push({ x:W / 2, y:H * .35, vx:(Math.random() - .5) * 14, vy:Math.random() * -13 - 3, r:Math.random() * 6 + 4, c:cols[i % 5], a:Math.random() * 6 });
+  (function f() {
+    x.clearRect(0, 0, W, H);
+    P.forEach(function (p) { p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += .2; x.fillStyle = p.c; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); });
+    if (++t < 130) requestAnimationFrame(f); else { x.clearRect(0, 0, W, H); c.hidden = true; }
+  })();
+}
+
+renderHome();
+})();
+</script>
+</body>
+</html>
