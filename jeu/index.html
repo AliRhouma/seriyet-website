@@ -100,6 +100,29 @@
   .pin.active text { fill:#fff; }
   .pin.active { animation:pulse 1.1s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
   .pin.flash circle { fill:var(--gold); }
+  .pin.miss circle { fill:var(--err); stroke:#fff; }
+  .pin.miss text { fill:#fff; }
+
+  /* ---------- exam ---------- */
+  .examcard { margin-top:14px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:rgba(255,255,255,.12); border-radius:18px; padding:12px; }
+  .examcard .btn { background:#FFD43B; color:var(--ink); box-shadow:none; }
+  .examcard small { font-size:14px; opacity:.92; line-height:1.5; flex:1; min-width:200px; }
+  .xlist { display:grid; gap:8px; direction:ltr; margin-top:12px; }
+  .xrow { display:grid; grid-template-columns:30px 1fr; gap:4px 8px; align-items:center; }
+  .xrow .n { width:28px; height:28px; border-radius:50%; background:var(--ink); color:#fff; display:grid; place-items:center; font-size:13px; font-weight:800; }
+  .xrow input { width:100%; min-width:0; border:2px solid var(--line); border-radius:12px; padding:10px 12px; font:600 16px Rubik, sans-serif; color:var(--ink); outline:0; background:#fff; }
+  .xrow input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+  .xrow.ok input { border-color:var(--ok); background:var(--ok-soft); }
+  .xrow.bad input { border-color:var(--err); background:var(--err-soft); text-decoration:line-through; }
+  .xrow.ok .n { background:var(--ok); } .xrow.bad .n { background:var(--err); }
+  .xrow .fix { grid-column:2; font-size:14px; font-weight:700; }
+  .xrow.ok .fix { color:var(--ok); } .xrow.bad .fix { color:var(--err); }
+  .xsum { margin-top:14px; display:grid; gap:10px; }
+  .score { font-size:64px; font-weight:800; line-height:1; direction:ltr; }
+  .score small { font-size:26px; color:var(--muted); }
+  .bytable { text-align:left; direction:ltr; display:grid; gap:6px; margin:14px 0; }
+  .bytable div { display:flex; justify-content:space-between; gap:10px; background:var(--bg); border-radius:12px; padding:9px 12px; font-size:15px; }
+  .bytable b { white-space:nowrap; }
   @keyframes pulse { 50% { transform:scale(1.35); } }
   .lead-line { stroke:var(--ink); }
   .panel { background:var(--card); border:2px solid var(--line); border-radius:20px; padding:16px; position:sticky; top:12px; }
@@ -158,6 +181,8 @@
   #confetti { position:fixed; inset:0; pointer-events:none; z-index:9; }
 
   @media (max-width:860px) {
+    body.examon .stage { position:sticky; top:0; z-index:3; box-shadow:0 8px 18px rgba(8,33,74,.12); }
+    body.examon .scroller svg { max-height:30vh; }
     .play { grid-template-columns:1fr; gap:10px; }
     .panel { position:static; padding:14px; }
     .scroller svg { max-height:44vh; }
@@ -197,6 +222,10 @@
     <div class="review">
       <button class="btn white" id="reviewBtn">🔁 مراجعة اليوم</button>
       <small id="reviewInfo"></small>
+    </div>
+    <div class="examcard">
+      <button class="btn" id="examBtn">🎓 امتحان الفصل كامل</button>
+      <small id="examInfo">الـ 5 schémas وحدة بعد وحدة، تكتب كل الأسامي من ذاكرتك، و تاخو عدد على 20.</small>
     </div>
   </div>
 
@@ -376,7 +405,7 @@ var LEVELS = [
    STATE (localStorage, wrapped)
    ===================================================================== */
 var KEY = "seriyet-schemas-v1";
-var S = { stars:{}, best:{}, box:{}, days:[], sound:true, zen:false };
+var S = { stars:{}, best:{}, box:{}, days:[], sound:true, zen:false, exam:null };
 try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function today(off) { var d = new Date(); d.setDate(d.getDate() + (off || 0)); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
@@ -517,6 +546,7 @@ function renderHome() {
     : "العب أي مستوى، و الـ légendes الي تعدّيهم يرجعولك هوني للمراجعة.";
   $("soundBtn").setAttribute("aria-pressed", S.sound); $("soundBtn").textContent = S.sound ? "🔊" : "🔇";
   $("zenBtn").setAttribute("aria-pressed", S.zen);
+  if (S.exam) $("examInfo").textContent = "آخر عدد : " + fr(S.exam.last) + "/20 · أحسن عدد : " + fr(S.exam.best) + "/20. عاود و حاول تفوتو 💪";
 }
 $("soundBtn").onclick = function () { S.sound = !S.sound; save(); renderHome(); };
 $("zenBtn").onclick = function () {
@@ -542,7 +572,7 @@ function openLevels(id) {
   var st = stars(id);
   $("lvTitle").textContent = curSchema.title;
   $("lvList").innerHTML = LEVELS.map(function (L, i) {
-    var locked = i > 1 && !st[i - 1];
+    var locked = false;
     return '<button class="lvl' + (L.boss ? " boss" : "") + '" data-l="' + i + '"' + (locked ? " disabled" : "") + '>' +
            '<span class="ico">' + (locked ? "🔒" : L.ico) + '</span><span class="t"><b>' + (i ? i + ". " : "") + L.name + '</b><span>' + L.desc + '</span></span>' +
            (i ? '<span class="stars">' + starStr(st[i]) + '</span>' : "") + '</button>';
@@ -607,7 +637,7 @@ function updTimer() {
   var el = (Date.now() - G.t0) / 1000;
   if (G.limit) {
     var left = G.limit - el; $("timer").textContent = fmt(left); $("timer").classList.toggle("warn", left <= 15);
-    if (left <= 0) { stopTimer(); finish(false, "⏱️ الوقت وفى"); }
+    if (left <= 0) { stopTimer(); if (G.exam) examTimeUp(); else finish(false, "⏱️ الوقت وفى"); }
   } else { $("timer").textContent = fmt(el); $("timer").classList.remove("warn"); }
 }
 function renderHearts() {
@@ -777,9 +807,130 @@ function finish(won, why) {
   show("end");
 }
 $("quitBtn").onclick = function () {
-  stopTimer();
+  stopTimer(); document.body.classList.remove("examon");
   if (G && !G.review && G.schema) openLevels(G.schema.id); else { renderHome(); show("home"); }
 };
+
+/* =====================================================================
+   CHAPTER EXAM — the 5 schemas in order, label every number, mark /20
+   ===================================================================== */
+var TOTAL = SCHEMAS.reduce(function (a, s) { return a + s.items.length; }, 0);
+function fr(x) { return String(x).replace(".", ","); }
+function startExam() {
+  stopTimer();
+  var zen = S.zen;
+  G = { exam:true, i:0, got:[], graded:false, wrong:[], t0:Date.now(), limit:zen ? 0 : TOTAL * 20, zen:zen, drawn:null, hearts:Infinity };
+  document.body.classList.add("examon");
+  show("game");
+  $("hearts").innerHTML = ""; $("timer").hidden = zen; $("tools").hidden = true;
+  if (!zen) { tick = setInterval(updTimer, 250); updTimer(); }
+  examSchema();
+}
+function examSchema() {
+  var s = SCHEMAS[G.i]; G.graded = false; G.cur = null;
+  drawStage(s);
+  document.querySelectorAll("#scroller .pin").forEach(function (p) { p.classList.remove("done", "miss", "active", "flash"); });
+  $("progBar").style.width = (100 * G.i / SCHEMAS.length) + "%";
+  $("askBox").innerHTML = '<div class="ask">🎓 الامتحان · <span class="lat">Schéma ' + (G.i + 1) + "/" + SCHEMAS.length + '</span></div>' +
+    '<div class="sub">Légender le schéma : اكتب إسم كل رقم. الي ما تعرفوش خلّيه فارغ.</div>';
+  $("fb").innerHTML = ""; $("legend").innerHTML = ""; $("legend").className = "legend";
+  var h = '<form id="xform" autocomplete="off"><div class="xlist">';
+  s.items.forEach(function (it) {
+    h += '<label class="xrow"><span class="n">' + it.n + '</span>' +
+         '<input data-n="' + it.n + '" lang="fr" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" dir="ltr"><span class="fix" hidden></span></label>';
+  });
+  h += '</div><div class="xsum"><button class="btn" type="submit" id="xgo">✓ صحّح الـ schéma</button></div></form>';
+  $("answers").className = "answers"; $("answers").innerHTML = h;
+  var ins = [].slice.call(document.querySelectorAll("#xform input"));
+  ins.forEach(function (inp, k) {
+    inp.onfocus = function () {
+      if (G.graded) return;
+      document.querySelectorAll("#scroller .pin").forEach(function (p) { p.classList.toggle("active", p.dataset.n === inp.dataset.n); });
+      scrollToPin(inp.dataset.n);
+    };
+    inp.onkeydown = function (e) {
+      if (e.key !== "Enter" || G.graded) return;
+      e.preventDefault();
+      if (ins[k + 1]) ins[k + 1].focus(); else examGrade();
+    };
+  });
+  $("xform").onsubmit = function (e) { e.preventDefault(); if (G.graded) examNext(); else examGrade(); };
+  window.scrollTo(0, 0);
+}
+function examGrade() {
+  if (G.graded) return;
+  G.graded = true;
+  var s = SCHEMAS[G.i], ok = 0;
+  s.items.forEach(function (it) {
+    var inp = document.querySelector('#xform input[data-n="' + it.n + '"]'), v = inp.value.trim();
+    var r = v ? check(v, it) : false, row = inp.parentNode, fix = row.querySelector(".fix"), b = boxOf(it.key);
+    inp.readOnly = true; fix.hidden = false;
+    if (r) {
+      ok++; row.classList.add("ok");
+      fix.textContent = r === "close" ? "✓ " + it.label : "✓";
+      b.b = Math.min(5, b.b + 1); b.due = today(GAPS[b.b]);
+    } else {
+      G.wrong.push({ key:it.key, given:v }); row.classList.add("bad");
+      fix.textContent = "→ " + it.label;
+      b.b = 1; b.due = today(1);
+    }
+    S.box[it.key] = b;
+    pinsOf(it.n).forEach(function (p) { p.classList.remove("active"); p.classList.add(r ? "done" : "miss"); });
+  });
+  save();
+  G.got[G.i] = ok;
+  (ok === s.items.length ? sfx.win : ok >= s.items.length / 2 ? sfx.ok : sfx.bad)();
+  $("fb").innerHTML = '<div class="fb ' + (ok >= s.items.length / 2 ? "ok" : "bad") + '"><div class="name">' + ok + " / " + s.items.length + '</div>' +
+    '<div class="sub">' + (ok === s.items.length ? "مثالي 👌" : "الأحمر هو الي لازم تعاودو. الإسم الصحيح مكتوب تحت كل خانة.") + '</div></div>';
+  $("xgo").textContent = G.i < SCHEMAS.length - 1 ? "الـ schéma الجاي ←" : "🎓 شوف العدد متاعك";
+  $("xgo").className = "btn ok";
+}
+function examNext() {
+  if (G.i < SCHEMAS.length - 1) { G.i++; examSchema(); } else examFinish(false);
+}
+function examTimeUp() {
+  if (!G.graded) examGrade();
+  for (var k = G.i + 1; k < SCHEMAS.length; k++) {
+    G.got[k] = 0;
+    SCHEMAS[k].items.forEach(function (it) { G.wrong.push({ key:it.key, given:"" }); });
+  }
+  examFinish(true);
+}
+function examFinish(timeUp) {
+  stopTimer(); document.body.classList.remove("examon");
+  var ok = G.got.reduce(function (a, b) { return a + (b || 0); }, 0);
+  var note = Math.round(40 * ok / TOTAL) / 2, secs = Math.round((Date.now() - G.t0) / 1000);
+  S.exam = { last:note, best:Math.max(note, S.exam ? S.exam.best : 0) };
+  if (S.days.indexOf(today()) < 0) S.days.push(today());
+  save();
+  var col = note >= 16 ? "var(--ok)" : note >= 10 ? "var(--blue)" : "var(--err)";
+  var msg = note >= 18 ? "ممتاز ! الـ schémas تاع درس الـ Homme محفوظين 🏆"
+          : note >= 14 ? "باهي برشا. شوية تركيز على الغلطات و توصل للـ 20."
+          : note >= 10 ? "متوسط. تدرّب على الغلطات و عاود الامتحان غدوة."
+          : "ما زال. ارجع للمستويات 🎯 و 🧩، و بعد عاود الامتحان.";
+  var h = '<div class="big">' + (note >= 16 ? "🏆" : note >= 10 ? "🎓" : "💪") + '</div>';
+  if (timeUp) h += '<p class="msg">⏱️ الوقت وفى. الـ schémas الي ما وصلتلهمش تحسبو صفر.</p>';
+  h += '<div class="score" style="color:' + col + '">' + fr(note) + '<small>/20</small></div>';
+  h += '<p class="msg" style="margin-top:10px">' + msg + '</p>';
+  h += '<div class="bytable">' + SCHEMAS.map(function (s, k) { return '<div><span>' + (k + 1) + ". " + esc(s.title) + '</span><b>' + (G.got[k] || 0) + " / " + s.items.length + '</b></div>'; }).join("") + '</div>';
+  h += '<div class="nums"><div><b>' + ok + "/" + TOTAL + '</b>صحيح</div><div><b>' + fr(S.exam.best) + '</b>أحسن عدد</div><div><b class="lat">' + (G.zen ? "—" : fmt(secs)) + '</b>الوقت</div></div>';
+  if (G.wrong.length) {
+    h += '<div class="redo"><b>À revoir (' + G.wrong.length + ') :</b><br>' + G.wrong.slice(0, 40).map(function (w) {
+      var it = BY_KEY[w.key]; return esc(it.label) + (w.given ? ' <span style="color:#9aa4b8">— ' + esc(w.given) + '</span>' : "");
+    }).join("<br>") + (G.wrong.length > 40 ? "<br>…" : "") + '</div>';
+  }
+  h += '<div class="act">';
+  if (G.wrong.length) h += '<button class="btn ok" id="xtrain">🔁 تدرّب على الغلطات (' + G.wrong.length + ')</button>';
+  h += '<button class="btn ghost" id="xagain">🎓 عاود الامتحان</button><button class="btn ghost" id="home2">🏠 الرئيسية</button></div>';
+  $("endBox").innerHTML = h;
+  var miss = G.wrong.map(function (w) { return BY_KEY[w.key]; });
+  if ($("xtrain")) $("xtrain").onclick = function () { startRound({ review:true, items:miss, level:4 }); };
+  $("xagain").onclick = startExam;
+  $("home2").onclick = function () { renderHome(); show("home"); };
+  if (note >= 16) confetti();
+  show("end");
+}
+$("examBtn").onclick = startExam;
 
 /* =====================================================================
    CONFETTI
